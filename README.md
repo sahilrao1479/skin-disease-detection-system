@@ -79,7 +79,13 @@ python app.py
 
 
 
+## Screenshots
 
+### Login Page
+![Login](screenshots/login.png)
+
+### Prediction Page
+![Prediction](screenshots/prediction.png)
 
 
 
