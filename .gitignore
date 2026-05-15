@@ -1,0 +1,8 @@
+skinenv/
+__pycache__/
+*.pyc
+users.db
+dataset/
+dataset_final/
+*.h5
+*.keras

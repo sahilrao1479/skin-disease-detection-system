@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Skin Disease Detection System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+
+    background:
+    linear-gradient(rgba(11,60,93,0.75),rgba(11,60,93,0.75)),
+    url("https://images.unsplash.com/photo-1580281657527-47d9c45b0b7b");
+
+    background-size:cover;
+    background-position:center;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.container{
+    width:480px;
+    padding:30px;
+    border-radius:18px;
+
+    background:rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(16px);
+
+    box-shadow:0 20px 45px rgba(0,0,0,0.35);
+
+    color:white;
+
+    animation:fadeIn 0.5s ease;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.subtext{
+    text-align:center;
+    font-size:14px;
+    opacity:0.8;
+    margin-bottom:20px;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    border-radius:10px;
+    margin-top:10px;
+    cursor:pointer;
+    border:none;
+    font-weight:600;
+    transition:0.3s;
+}
+
+.upload-btn{
+    background:rgba(255,255,255,0.2);
+    color:white;
+}
+
+.upload-btn:hover{
+    background:rgba(255,255,255,0.3);
+}
+
+.analyze-btn{
+    background:#0dcaf0;
+}
+
+.analyze-btn:hover{
+    background:#0bb5d6;
+}
+
+.reset-btn{
+    background:rgba(255,255,255,0.4);
+}
+
+.reset-btn:hover{
+    background:rgba(255,255,255,0.6);
+}
+
+.file-name{
+    margin-top:10px;
+    font-size:13px;
+    opacity:0.8;
+    text-align:center;
+}
+
+.preview-box{
+    margin-top:15px;
+    height:200px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.preview-box img{
+    max-height:100%;
+    border-radius:10px;
+    display:none;
+}
+
+.result{
+    margin-top:20px;
+    padding:15px;
+    border-radius:10px;
+    display:none;
+
+    background:rgba(25,135,84,0.85);
+}
+
+.prediction{
+    margin-bottom:12px;
+}
+
+.bar{
+    height:8px;
+    border-radius:5px;
+    background:rgba(255,255,255,0.3);
+    margin-top:4px;
+}
+
+.fill{
+    height:100%;
+    border-radius:5px;
+    background:#00ffcc;
+}
+
+.note{
+    margin-top:10px;
+    font-size:13px;
+    opacity:0.9;
+}
+
+/* Logout Button */
+
+.logout-btn{
+
+    position:fixed;
+
+    right:20px;
+    bottom:20px;
+
+    width:120px;
+
+    background:#dc3545;
+    color:white;
+
+    border:none;
+    border-radius:12px;
+
+    padding:12px;
+
+    font-size:15px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    box-shadow:0 5px 15px rgba(0,0,0,0.3);
+
+    transition:0.3s;
+}
+
+.logout-btn:hover{
+    background:#bb2d3b;
+}
+
+@keyframes fadeIn{
+
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Skin Disease Detection</h1>
+
+    <div class="subtext">
+        AI-powered analysis using deep learning
+    </div>
+
+    <input 
+        type="file"
+        id="imageInput"
+        style="display:none"
+        accept="image/*"
+    >
+
+    <button
+        class="upload-btn"
+        onclick="imageInput.click()"
+    >
+        Upload Image
+    </button>
+
+    <div class="file-name" id="fileName"></div>
+
+    <div class="preview-box">
+        <img id="previewImage">
+    </div>
+
+    <button
+        class="analyze-btn"
+        onclick="predict()"
+    >
+        Analyze
+    </button>
+
+    <button
+        class="reset-btn"
+        onclick="resetUI()"
+    >
+        Reset
+    </button>
+
+    <div id="result" class="result"></div>
+
+</div>
+
+<!-- Logout Button -->
+
+<button class="logout-btn" onclick="logout()">
+    Logout
+</button>
+
+<script>
+
+/* Predict Function */
+
+function predict(){
+
+    let file =
+    document.getElementById("imageInput").files[0];
+
+    if(!file){
+
+        alert("Upload image first");
+        return;
+    }
+
+    let formData = new FormData();
+
+    formData.append("file",file);
+
+    fetch("/predict",{
+
+        method:"POST",
+        body:formData
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        let result =
+        document.getElementById("result");
+
+        if(data.predictions){
+
+            let html =
+            "<b>Top Predictions:</b><br><br>";
+
+            data.predictions.forEach(p => {
+
+                html += `
+
+                <div class="prediction">
+
+                    ${p.disease} - ${p.confidence}%
+
+                    <div class="bar">
+                        <div class="fill"
+                        style="width:${p.confidence}%">
+                        </div>
+                    </div>
+
+                </div>
+
+                `;
+            });
+
+            html += `
+            <div class="note">
+                ${data.note}
+            </div>
+            `;
+
+            result.innerHTML = html;
+        }
+
+        else{
+
+            result.innerHTML = data.error;
+        }
+
+        result.style.display = "block";
+    });
+}
+
+/* Reset Function */
+
+function resetUI(){
+
+    document.getElementById("imageInput").value="";
+
+    document.getElementById("previewImage").style.display="none";
+
+    document.getElementById("result").style.display="none";
+
+    document.getElementById("fileName").innerText="";
+}
+
+/* Image Preview */
+
+document.getElementById("imageInput")
+
+.addEventListener("change",function(){
+
+    let file = this.files[0];
+
+    if(file){
+
+        document.getElementById("fileName").innerText =
+        file.name;
+    }
+
+    let reader = new FileReader();
+
+    reader.onload = function(e){
+
+        let img =
+        document.getElementById("previewImage");
+
+        img.src = e.target.result;
+
+        img.style.display = "block";
+    }
+
+    if(file){
+
+        reader.readAsDataURL(file);
+    }
+});
+
+/* Logout Function */
+
+function logout(){
+
+    alert("Logged out successfully");
+
+    // Refresh and go to login/register page
+
+    window.location.href = "/";
+}
+
+</script>
+
+</body>
+</html>
